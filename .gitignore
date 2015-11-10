@@ -1,0 +1,10 @@
+*~
+build/*
+config/*
+dataset/videos
+*.o
+BlobTracking/output/*
+*.sln
+*.suo
+*.vcproj
+BlobTracking/property_sheets
