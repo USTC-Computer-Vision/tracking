@@ -8,3 +8,6 @@ BlobTracking/output/*
 *.suo
 *.vcproj
 BlobTracking/property_sheets
+*.avi
+*.mp4
+*.mov

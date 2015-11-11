@@ -8,7 +8,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
 IF(UNIX)
   # add some standard warnings
   ADD_DEFINITIONS(-Wno-variadic-macros -Wno-long-long -Wall -Wextra -Winit-self -Woverloaded-virtual -Wsign-promo -Wno-unused-parameter -pedantic -Woverloaded-virtual -Wno-unknown-pragmas)
-  
+
   # -ansi does not compile with sjn module
   #ADD_DEFINITIONS(-ansi)
 
@@ -65,3 +65,10 @@ target_link_libraries(bgs_demo ${OpenCV_LIBS} bgs)
 file(GLOB opencv_sample opencv_sample/blobtrack_sample.cpp)
 add_executable(blobtrack_sample ${opencv_sample})
 target_link_libraries(blobtrack_sample ${OpenCV_LIBS})
+
+add_library(ustc ustc_src/ustc_bgs.cpp)
+target_link_libraries(ustc ${OpenCV_LIBS} bgs)
+set_property(TARGET ustc PROPERTY PUBLIC_HEADER ustc_src/ustc_bgs.h)
+
+add_executable(tracking ustc_src/trackingMain.cpp)
+target_link_libraries(tracking ${OpenCV_LIBS} bgs ustc)
