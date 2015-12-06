@@ -17,6 +17,8 @@
 # define MY_STRDUP strdup
 #endif
 
+using namespace std;
+using namespace cv;
 /* List of foreground (FG) DETECTION modules: */
 static CvFGDetector* cvCreateFGDetector0      () { return cvCreateFGDetectorBase(CV_BG_MODEL_FGD,        NULL); }
 static CvFGDetector* cvCreateFGDetector0Simple() { return cvCreateFGDetectorBase(CV_BG_MODEL_FGD_SIMPLE, NULL); }
@@ -29,7 +31,7 @@ typedef struct DefModule_FGDetector
     const char* description;
 } DefModule_FGDetector;
 bool useBgs=true;
-int type=30;
+int type=36;
 USTC_BGS* bgs=new USTC_BGS(type);
 
 DefModule_FGDetector FGDetector_Modules[] =
@@ -48,10 +50,12 @@ typedef struct DefModule_BlobDetector
     const char* description;
 } DefModule_BlobDetector;
 
+// static CvBlobDetector *cvCreateBlobDetectorReal(){return new cvCreateBlobDetectorReal}
 DefModule_BlobDetector BlobDetector_Modules[] =
 {
     {cvCreateBlobDetectorCC,"BD_CC","Detect new blob by tracking CC of FG mask"},
     {cvCreateBlobDetectorSimple,"BD_Simple","Detect new blob by uniform moving of connected components of FG mask"},
+    // {cvCreateBlobDetectorReal,"BD_Real","Detect new blob which have uniform motion with not high speed"},
     {NULL,NULL,NULL}
 };
 
@@ -190,6 +194,11 @@ static int RunBlobTrackingAuto( CvCapture* pCap, CvBlobTrackerAuto* pTracker,cha
                 for(i=pTracker->GetBlobNum();i>0;i--)
                 {
                     CvBlob* pB = pTracker->GetBlob(i-1);
+                    CvBlob* pBlob;
+                    pBlob=pB;
+                    cout<<"pBlob x,y,w,h,id is "<<pBlob->x<<" , "<<pBlob->y<<" , " \
+                    <<pBlob->w<<" , "<<pBlob->h<<" , "<<pBlob->ID<<endl;
+
                     CvPoint p = cvPointFrom32f(CV_BLOB_CENTER(pB));
                     CvSize  s = cvSize(MAX(1,cvRound(CV_BLOB_RX(pB))), MAX(1,cvRound(CV_BLOB_RY(pB))));
                     int c = cvRound(255*pTracker->GetState(CV_BLOB_ID(pB)));

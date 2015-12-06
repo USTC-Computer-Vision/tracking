@@ -79,34 +79,35 @@ void USTC_BGS::Release(){
 IplImage* USTC_BGS::GetMask() {
     // CV_Assert(frameNum!=0);
     if(frameNum==0) return NULL;
-    cvShowImage( "c_mask",c_mask);
-    std::cout<<"GetMask "<<c_mask<<" "<<frameNum<<std::endl;
+    // cvShowImage( "c_mask",c_mask);
+    // std::cout<<"GetMask "<<c_mask<<" "<<frameNum<<std::endl;
     return c_mask;
 }
 
 void    USTC_BGS::Process(IplImage* pImg) {
-    std::cout<<"ustc_bgs::process start, frameNum="<<frameNum<<std::endl;
+    // std::cout<<"ustc_bgs::process start, frameNum="<<frameNum<<std::endl;
     img_input=cv::Mat(pImg);
-    std::cout<<"img_input: "<<img_input.rows<<" , "<<img_input.cols<<std::endl;
-    imshow("img_input",img_input);
+    // std::cout<<"img_input: "<<img_input.rows<<" , "<<img_input.cols<<std::endl;
+    // imshow("img_input",img_input);
 
-    std::cout<<"img_input: "<<img_input.rows<<" , "<<img_input.cols<<std::endl;
+    // std::cout<<"img_input: "<<img_input.rows<<" , "<<img_input.cols<<std::endl;
     bgs->process(img_input, img_mask, img_bkgmodel);
      
-     std::cout<<"img_input: "<<img_input.rows<<" , "<<img_input.cols<<std::endl;
+     // std::cout<<"img_input: "<<img_input.rows<<" , "<<img_input.cols<<std::endl;
      if(!img_mask.empty()){
-         std::cout<<"img_mask: "<<img_mask.rows<<" , "<<img_mask.cols<<std::endl;
+         // std::cout<<"img_mask: "<<img_mask.rows<<" , "<<img_mask.cols<<std::endl;
         b=img_mask.operator IplImage();
         c_mask=&b;
-        if(frameNum==0) cvNamedWindow( "c_mask",0);
-        cvShowImage( "c_mask",c_mask);
+        // if(frameNum==0) cvNamedWindow( "c_mask",0);
+        // cvShowImage( "c_mask",c_mask);
         frameNum++;
-        std::cout<<"&b is "<<&b<<" "<<frameNum<<std::endl;
+        // std::cout<<"&b is "<<&b<<" "<<frameNum<<std::endl;
      }
      else{
-         std::cout<<"img_mask is empty"<<frameNum<<std::endl;
+         std::cout<<"img_mask is empty "<<frameNum<<std::endl;
+         frameNum++;
      }
      
     
-    std::cout<<"ustc_bgs::process end, frameNum="<<frameNum<<std::endl;
+    // std::cout<<"ustc_bgs::process end, frameNum="<<frameNum<<std::endl;
 }
