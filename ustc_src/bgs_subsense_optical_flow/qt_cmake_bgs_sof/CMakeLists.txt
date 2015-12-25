@@ -8,8 +8,12 @@ if(${OpenCV_VERSION} VERSION_LESS 2.3.1)
   message (FATAL_ERROR "OpenCV version is not compatible: ${OpenCV_VERSION}")
 endif()
 
-file(GLOB_RECURSE sources *.cpp)
-file(GLOB_RECURSE includes *.h)
+# add c11
+SET(CMAKE_CXX_FLAGS "-std=c++0x")
+set( CMAKE_BUILD_TYPE Debug)
+
+file(GLOB_RECURSE sources *.cpp ../../pl/*.cpp)
+file(GLOB_RECURSE includes *.h ../../pl/*.h)
 
 list(REMOVE_ITEM sources main.cpp)
 
@@ -19,3 +23,5 @@ set_property(TARGET yzbx PROPERTY PUBLIC_HEADER ${includes})
 
 add_executable(${PROJECT_NAME} main.cpp)
 target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS} yzbx)
+#target_compile_features(${PROJECT_NAME} PRIVATE cxx_range_for)
+
