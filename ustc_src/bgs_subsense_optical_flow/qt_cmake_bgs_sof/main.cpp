@@ -17,11 +17,12 @@ int main()
     cout << "Hello World!" << endl;
     cv::Mat oCurrInputFrame, oCurrSegmMask, oCurrReconstrBGImg;
 //    string fileDir="D:\\firefoxDownload\\matlab\\dataset2012\\dataset\\dynamicBackground\\boats\\input";
-    string fileDir="/media/yzbx/D/firefoxDownload/matlab/dataset2012/dataset/dynamicBackground/boats/input";
+    string fileDir="/media/yzbx/D/firefoxDownload/matlab/dataset2012/dataset/dynamicBackground/fall/input";
 
+    int roi[]={1000,4000};
     std::cout<<"fileDir is "<<fileDir<<std::endl;
     stringstream ss;
-    int frameNum=6900;
+    int frameNum=roi[0]-100;
     char strnum[10];
     sprintf(strnum,"%06d",frameNum);
     printf("strnum is %s",strnum);
@@ -50,7 +51,7 @@ int main()
     cv::namedWindow("mask",cv::WINDOW_NORMAL);
     cv::namedWindow("rawFG",cv::WINDOW_AUTOSIZE);
     cv::namedWindow("FG",cv::WINDOW_AUTOSIZE);
-    cv::namedWindow("difImage",cv::WINDOW_AUTOSIZE);
+    cv::namedWindow("randm",cv::WINDOW_AUTOSIZE);
     cv::namedWindow("boxGap",cv::WINDOW_AUTOSIZE);
     cv::namedWindow("addtion",cv::WINDOW_AUTOSIZE);
     subsenseShrink oBGSAlg;
@@ -65,7 +66,7 @@ int main()
         ss<<fileDir<<"/in"<<strnum<<".jpg";
         ss>>fileName;
 
-        if(frameNum>7400)   break;
+        if(frameNum>roi[1])   break;
 
         oCurrInputFrame=imread(fileName);
         if(oCurrInputFrame.empty())
@@ -77,19 +78,39 @@ int main()
 //        oBGSAlg.getBackgroundImage(oCurrReconstrBGImg);
         imshow("input",oCurrInputFrame);
         imshow("mask",oCurrSegmMask);
-        oBGSAlg.getShrinkFGMask(oCurrInputFrame);
+//        oBGSAlg.getShrinkFGMask(oCurrInputFrame);
+        //up down
+//        Mat randm=oBGSAlg.getRandShrinkFGMask(oCurrInputFrame);
+        //mean dif
+//        Mat randm=oBGSAlg.getRandShrinkFGMask2(oCurrInputFrame);
+        //mean dif + up down
+//        Mat randm=oBGSAlg.getRandShrinkFGMask3(oCurrInputFrame);
 
         Mat gray;
         if(k>1){
-            imshow("rawFG",oBGSAlg.rawFG);
-            imshow("FG",oBGSAlg.FG);
+//            imshow("rawFG",oBGSAlg.rawFG);
+//            imshow("FG",oBGSAlg.FG);
 //            cv::cvtColor(oBGSAlg.difImage,gray,CV_RGB2GRAY);
-            imshow("difImage",oBGSAlg.difImage);
+//            imshow("randm",randm);
 //            imshow("difImage",gray);
-            imshow("boxGap",oBGSAlg.BoxGap);
+//            imshow("boxGap",oBGSAlg.BoxGap>10);
         }
 
-
+        if(frameNum>=roi[0]){
+            ss.clear();
+            string rootPath="/media/yzbx/E/matlab/subsense/yzbx/fall";
+            ss<<rootPath<<"/bin"<<strnum<<".png";
+            string outPath;
+//            ss>>fileName;
+            ss>>outPath;
+           bool flag=imwrite(outPath,oCurrSegmMask);
+           if(!flag){
+               cout<<"write file failed!!!"<<endl;
+           }
+           else{
+               cout<<"write file "+outPath+" okay!!!"<<endl;
+           }
+        }
         if(cv::waitKey(1)==27)
             break;
     }

@@ -4,6 +4,25 @@
 
 using namespace std;
 using namespace cv;
+class Yzbx{
+public:
+    double yzbxNoiseRate;
+    int yzbxFrameNum=1;
+
+    Mat BoxUp,BoxDown;
+    Mat hitCountUp,hitCountDown;
+    Mat rawFG,FG;
+    Mat difImage,BoxGap;
+    int learnStep=3;
+
+    //boxup and boxdown
+    Mat getSingleShrinkFGMask(Mat input, Mat m_oLastFGMask);
+
+    Mat mean,difmax,difmaxCount;
+    //mean,difmax
+    Mat getSingleShrinkFGMask2(Mat input, Mat m_oLastFGMask);
+};
+
 class subsenseShrink: public BackgroundSubtractorSuBSENSE
 {
 public:
@@ -19,6 +38,9 @@ public:
     void operator()(cv::InputArray image, cv::OutputArray fgmask, double learningRateOverride=0);
     Mat getNoiseImg();
     Mat getShrinkFGMask(Mat input);
+    Mat getRandShrinkFGMask(Mat  input);
+    Mat getRandShrinkFGMask2(Mat input);
+    Mat getRandShrinkFGMask3(Mat input);
 public:
     Mat yzbxRawFGMask;
     Mat yzbxNoiseOffset;
@@ -31,6 +53,10 @@ public:
     Mat rawFG,FG;
     Mat difImage,BoxGap;
     int learnStep=3;
+
+    int randMaskNum=1;
+    Mat mean;
+    vector<Yzbx> yzbxs;
 };
 
 #endif // SUBSENSESHRINK_H
