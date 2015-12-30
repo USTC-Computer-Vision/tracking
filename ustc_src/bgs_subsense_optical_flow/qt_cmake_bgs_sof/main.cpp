@@ -20,7 +20,7 @@ int main()
 //    string fileDir="/media/yzbx/D/firefoxDownload/matlab/dataset2012/dataset/dynamicBackground/boats/input";
     string fileDir="/media/yzbx/D/firefoxDownload/matlab/dataset2012/dataset/baseline/office/input";
 
-    int roi[]={7000,7100};
+    int roi[]={700,1000};
     std::cout<<"fileDir is "<<fileDir<<std::endl;
     stringstream ss;
     int frameNum=roi[0]-100;
@@ -52,9 +52,6 @@ int main()
     cv::namedWindow("mask",cv::WINDOW_NORMAL);
     cv::namedWindow("rawFG",cv::WINDOW_AUTOSIZE);
     cv::namedWindow("FG",cv::WINDOW_AUTOSIZE);
-    cv::namedWindow("randm",cv::WINDOW_AUTOSIZE);
-    cv::namedWindow("boxGap",cv::WINDOW_AUTOSIZE);
-    cv::namedWindow("addtion",cv::WINDOW_AUTOSIZE);
     subsenseShrink oBGSAlg;
 //    BackgroundSubtractorSuBSENSE oBGSAlg;
     oBGSAlg.initialize(oCurrInputFrame,oSequenceROI);
@@ -97,7 +94,7 @@ int main()
 //            imshow("rawFG",oBGSAlg.rawFG);
 //            imshow("FG",oBGSAlg.FG);
 //            cv::cvtColor(oBGSAlg.difImage,gray,CV_RGB2GRAY);
-//            imshow("randm",randm);
+//            imshow("randm",oBGSAlg.yzbxRawFGMask);
 //            imshow("difImage",gray);
 //            imshow("boxGap",oBGSAlg.BoxGap>10);
         }

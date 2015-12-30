@@ -58,6 +58,7 @@ void subsenseShrink::operator()(cv::InputArray _image, cv::OutputArray _fgmask, 
     //yzbx get rand fg
     FG=getRandShrinkFGMask(_image.getMat());
 
+    yzbxInput=_image.getMat();
     // == process
     CV_Assert(m_bInitialized);
     cv::Mat oInputImg = _image.getMat();
@@ -482,8 +483,10 @@ failedcheck3ch:
         if(m_nModelResetCooldown>0)
             --m_nModelResetCooldown;
     }
-     yzbxFrameNum=yzbxFrameNum+1;
-//    getShrinkFGMask(_image);
+    yzbxFrameNum=yzbxFrameNum+1;
+
+    sortFGList();
+    //    getShrinkFGMask(_image);
 }
 
 Mat subsenseShrink::getNoiseImg(){
@@ -506,8 +509,8 @@ Mat subsenseShrink::getNoiseImg(){
 Mat subsenseShrink::getShrinkFGMask(Mat input){
     if(BoxDown.empty()){
         cout<<"BoxDown is empty"<<endl;
-//        BoxDown=input-15;
-//        BoxUp=input+15;
+        //        BoxDown=input-15;
+        //        BoxUp=input+15;
         BoxUp=input.clone();
         BoxDown=input.clone();
         vector<Mat> inputMats,BoxUpMats,BoxDownMats;
@@ -553,10 +556,10 @@ Mat subsenseShrink::getShrinkFGMask(Mat input){
             a=inputMats[i].at<uchar>(150,150);
             b=BoxUpMats[i].at<uchar>(150,150);
             c=BoxDownMats[i].at<uchar>(150,150);
-//            imshow("bgmask",bgMask);
+            //            imshow("bgmask",bgMask);
         }
         e=bgMask.at<uchar>(150,150);
-//        bitwise_not(bgMask,mask); //1->254
+        //        bitwise_not(bgMask,mask); //1->254
         mask=bgMask<1;
 
         f=mask.at<uchar>(150,150);
@@ -571,7 +574,7 @@ Mat subsenseShrink::getShrinkFGMask(Mat input){
         for(int i=0;i<3;i++){
             dif1=inputMats[i]-BoxUpMats[i];
             dif2=BoxDownMats[i]-inputMats[i];
-           max(dif1,dif2,difImages[i]);
+            max(dif1,dif2,difImages[i]);
         }
         cv::merge(difImages,difImage);
 
@@ -580,10 +583,10 @@ Mat subsenseShrink::getShrinkFGMask(Mat input){
         cv::erode(rawFG,FG,kernel);
         cv::medianBlur(FG,FG,m_nMedianBlurKernelSize);
         cv::dilate(FG,FG,kernel);
-//        FG=FG&m_oLastFGMask_dilated;
-//        Mat invFG=(mask<1);
-//        cv::dilate(invFG,invFG,kernel);
-//        imshow("addtion",invFG);
+        //        FG=FG&m_oLastFGMask_dilated;
+        //        Mat invFG=(mask<1);
+        //        cv::dilate(invFG,invFG,kernel);
+        //        imshow("addtion",invFG);
 
         //
         vector<vector<Point> > contours,contours0;
@@ -604,18 +607,18 @@ Mat subsenseShrink::getShrinkFGMask(Mat input){
             //tracking...
             vector<Moments> mu(contours0.size());
             vector<Vec3f> trackingStatus(contours0.size());
-             for( int i = 0; i < contours0.size(); i++ )
-                {
-                 mu[i] = moments( contours0[i], false );
-                 Vec3f v3;
-                 v3[0]=mu[i].m10/mu[i].m00;
-                 v3[1]=mu[i].m01/mu[i].m00;
-                 v3[2]=mu[i].m00;
-                 trackingStatus[i]=v3;
-                 //void circle(Mat&img, Point center, intradius, const Scalar&color,intthickness=1, intlineType=8, intshift=0)
+            for( int i = 0; i < contours0.size(); i++ )
+            {
+                mu[i] = moments( contours0[i], false );
+                Vec3f v3;
+                v3[0]=mu[i].m10/mu[i].m00;
+                v3[1]=mu[i].m01/mu[i].m00;
+                v3[2]=mu[i].m00;
+                trackingStatus[i]=v3;
+                //void circle(Mat&img, Point center, intradius, const Scalar&color,intthickness=1, intlineType=8, intshift=0)
                 cv::circle(cnt_img,cv::Point(v3[0],v3[1]),5,cv::Scalar(0,0,255),-1);
-             }
-//             imshow("addtion",cnt_img);
+            }
+            //             imshow("addtion",cnt_img);
 
             for(int i=0;i<contours0.size();i++){
                 double area=contourArea(contours[i]);
@@ -630,39 +633,39 @@ Mat subsenseShrink::getShrinkFGMask(Mat input){
 
         //count the hit
         Mat notTmp=tmp.clone();
-//        bitwise_not(oCurrFGMask,notTmp);
+        //        bitwise_not(oCurrFGMask,notTmp);
         notTmp=oCurrFGMask<1;
         for(int i=0;i<3;i++){
             //up
-//            HitMask=(notTmp)&(inputMats[i]-BoxUpMats[i]>1)&(BoxUpMats[i]-inputMats[i]<5);
+            //            HitMask=(notTmp)&(inputMats[i]-BoxUpMats[i]>1)&(BoxUpMats[i]-inputMats[i]<5);
             HitMask=(inputMats[i]-BoxUpMats[i]<1)&(BoxUpMats[i]-inputMats[i]<5);
             add(hitCountUpMats[i],1,hitCountUpMats[i],HitMask);
             //down
-//            HitMask=(notTmp)&(inputMats[i]-BoxDownMats[i]<5)&(BoxDownMats[i]-inputMats[i]<1);
+            //            HitMask=(notTmp)&(inputMats[i]-BoxDownMats[i]<5)&(BoxDownMats[i]-inputMats[i]<1);
             HitMask=(inputMats[i]-BoxDownMats[i]<5)&(BoxDownMats[i]-inputMats[i]<1);
             add(hitCountDownMats[i],1,hitCountDownMats[i],HitMask);
         }
 
 
-//        RNG rgb;// rng.fill 产生的矩阵一样。
+        //        RNG rgb;// rng.fill 产生的矩阵一样。
         Mat randMat=HitMask.clone();
 
         cout<<"smooth decrease"<<endl;
         //smooth decrease hitCount by 10%
         for(int i=0;i<3;i++){
-//            rgb.fill(randMat,RNG::UNIFORM,0,50,false);
+            //            rgb.fill(randMat,RNG::UNIFORM,0,50,false);
             randu(randMat,0,50);
             subtract(hitCountUpMats[i],1,hitCountUpMats[i],randMat<1);
-//             rgb.fill(randMat,RNG::UNIFORM,0,50,false);
+            //             rgb.fill(randMat,RNG::UNIFORM,0,50,false);
             randu(randMat,0,50);
             subtract(hitCountDownMats[i],1,hitCountDownMats[i],randMat<1);
         }
 
         //smooth shrink by 5%
-//        if(yzbxNoiseRate<0.25){
-//            BoxUp=BoxUp-1;
-//            BoxDown=BoxDown+1;
-//        }
+        //        if(yzbxNoiseRate<0.25){
+        //            BoxUp=BoxUp-1;
+        //            BoxDown=BoxDown+1;
+        //        }
 
         int randK;
         if(yzbxNoiseRate<0.1){
@@ -674,18 +677,18 @@ Mat subsenseShrink::getShrinkFGMask(Mat input){
 
         cout<<"smooth shrink "<<endl;
         for(int i=0;i<3;i++){
-//            rgb.fill(randMat,RNG::UNIFORM,0,50,false);
+            //            rgb.fill(randMat,RNG::UNIFORM,0,50,false);
             randu(randMat,0,randK);
             subtract(BoxUpMats[i],1,BoxUpMats[i],randMat<1&(hitCountUpMats[i]<1));
-//            rgb.fill(randMat,RNG::UNIFORM,0,50,false);
+            //            rgb.fill(randMat,RNG::UNIFORM,0,50,false);
             randu(randMat,0,randK);
             add(BoxDownMats[i],1,BoxDownMats[i],randMat<1&(hitCountDownMats[i]<1));
 
             //no too much improve!
-//            rgb.fill(randMat,RNG::UNIFORM,0,50,false);
-//            add(BoxUpMats[i],1,BoxUpMats[i],randMat<1&(hitCountUpMats[i]>1));
-//            rgb.fill(randMat,RNG::UNIFORM,0,50,false);
-//            subtract(BoxDownMats[i],1,BoxDownMats[i],randMat<1&(hitCountDownMats[i]>1));
+            //            rgb.fill(randMat,RNG::UNIFORM,0,50,false);
+            //            add(BoxUpMats[i],1,BoxUpMats[i],randMat<1&(hitCountUpMats[i]>1));
+            //            rgb.fill(randMat,RNG::UNIFORM,0,50,false);
+            //            subtract(BoxDownMats[i],1,BoxDownMats[i],randMat<1&(hitCountDownMats[i]>1));
         }
 
         //set BoxUp and BoxDown by input and FGMask!!!
@@ -693,20 +696,20 @@ Mat subsenseShrink::getShrinkFGMask(Mat input){
         cout<<"set BoxUp and BoxDown by input and FGMask"<<endl;
 
         for(int i=0;i<3;i++){
-//            rgb.fill(randMat,RNG::UNIFORM,0,20,false);
+            //            rgb.fill(randMat,RNG::UNIFORM,0,20,false);
             randu(randMat,0,20);
             HitMask=(BoxUpMats[i]-inputMats[i]<1)&(inputMats[i]-BoxUpMats[i]<learnStep);
             cv::max(BoxUpMats[i],inputMats[i],tmp);
             add(tmp,0,BoxUpMats[i],(m_oLastFGMask_dilated<1)&HitMask);
 
-//             rgb.fill(randMat,RNG::UNIFORM,0,20,false);
+            //             rgb.fill(randMat,RNG::UNIFORM,0,20,false);
             randu(randMat,0,20);
-             HitMask=(BoxDownMats[i]-inputMats[i]<learnStep)&(inputMats[i]-BoxDownMats[i]<1);
+            HitMask=(BoxDownMats[i]-inputMats[i]<learnStep)&(inputMats[i]-BoxDownMats[i]<1);
             cv::min(BoxDownMats[i],inputMats[i],tmp);
             add(tmp,0,BoxDownMats[i],(m_oLastFGMask_dilated<1)&HitMask);
         }
-//        randu(randMat,0,20);
-//        imshow("addtion",randMat);
+        //        randu(randMat,0,20);
+        //        imshow("addtion",randMat);
 
         BoxGap=(BoxUp-BoxDown)/2;
         vector<Mat> BoxGapMats;
@@ -745,11 +748,11 @@ Mat subsenseShrink::getShrinkFGMask(Mat input){
 
 
 }
-Mat Yzbx::getSingleShrinkFGMask(Mat input,Mat m_oLastFGMask){
+Mat Yzbx::getSingleShrinkFGMask(Mat input,Mat m_oLastFGMask,Mat subsense_R){
     if(BoxDown.empty()){
         cout<<"BoxDown is empty"<<endl;
-//        BoxDown=input-15;
-//        BoxUp=input+15;
+        //        BoxDown=input-15;
+        //        BoxUp=input+15;
         BoxUp=input.clone();
         BoxDown=input.clone();
         vector<Mat> inputMats,BoxUpMats,BoxDownMats;
@@ -775,9 +778,11 @@ Mat Yzbx::getSingleShrinkFGMask(Mat input,Mat m_oLastFGMask){
         Mat mask;
         mask.create(row,col,CV_8U);
         mask.setTo(0);
+        unStableArea=mask.clone();
         return mask;
     }
     else{
+        int minUnstableGap=10;
         vector<Mat> inputMats,BoxUpMats,BoxDownMats;
         split(input,inputMats);
         split(BoxUp,BoxUpMats);
@@ -793,15 +798,23 @@ Mat Yzbx::getSingleShrinkFGMask(Mat input,Mat m_oLastFGMask){
         Mat bgMask=mask.clone();
 
         uchar a,b,c,d,e,f;
+        Mat dif3=input.clone();
+        vector<Mat> dif;
+        split(dif3,dif);
         for(int i=0;i<3;i++){
             bgMask=bgMask&(inputMats[i]<=BoxUpMats[i])&(inputMats[i]>=BoxDownMats[i]);
+            dif[i]=(inputMats[i]-BoxUpMats[i])+(BoxDownMats[i]-inputMats[i]);
         }
+        merge(dif,dif3);
+        Mat gray;
+        cvtColor(dif3,gray,CV_RGB2HLS_FULL);
+        imshow("dif3",gray);
 
         mask=bgMask<1;
         rawFG=mask.clone();
 
         int m_nMedianBlurKernelSize=9;
-//        Mat oCurrFGMask=rawFG|m_oLastFGMask;
+        //        Mat oCurrFGMask=rawFG|m_oLastFGMask;
         Mat oCurrFGMask=rawFG;
         Mat kernel=cv::getStructuringElement(cv::MORPH_ELLIPSE,cv::Size(3,3));
         cv::erode(rawFG,FG,kernel);
@@ -814,12 +827,12 @@ Mat Yzbx::getSingleShrinkFGMask(Mat input,Mat m_oLastFGMask){
         Mat m_oLastFGMask_dilated=mask.clone();
         kernel=cv::getStructuringElement(cv::MORPH_ELLIPSE,cv::Size(30,30));
         dilate(m_oLastFGMask,m_oLastFGMask_dilated,kernel);
-//        dilate(FG,m_oLastFGMask_dilated,kernel);
+        //        dilate(FG,m_oLastFGMask_dilated,kernel);
 
-//        FG=FG&m_oLastFGMask_dilated;
-//        Mat invRawFG=(rawFG<1);
-//        cv::dilate(invRawFG,invRawFG,kernel);
-//        imshow("addtion",invRawFG);
+        //        FG=FG&m_oLastFGMask_dilated;
+        //        Mat invRawFG=(rawFG<1);
+        //        cv::dilate(invRawFG,invRawFG,kernel);
+        //        imshow("addtion",invRawFG);
 
         //count the hit
         Mat HitMask=mask.clone();
@@ -832,25 +845,25 @@ Mat Yzbx::getSingleShrinkFGMask(Mat input,Mat m_oLastFGMask){
         notTmp=oCurrFGMask<1;
         for(int i=0;i<3;i++){
             //up
-//            HitMask=(notTmp)&(inputMats[i]-BoxUpMats[i]>1)&(BoxUpMats[i]-inputMats[i]<5);
+            //            HitMask=(notTmp)&(inputMats[i]-BoxUpMats[i]>1)&(BoxUpMats[i]-inputMats[i]<5);
             HitMask=(inputMats[i]<BoxUpMats[i])&(BoxUpMats[i]<inputMats[i]+5)&(m_oLastFGMask_dilated<1);
             add(hitCountUpMats[i],1,hitCountUpMats[i],HitMask);
             //down
-//            HitMask=(notTmp)&(inputMats[i]-BoxDownMats[i]<5)&(BoxDownMats[i]-inputMats[i]<1);
+            //            HitMask=(notTmp)&(inputMats[i]-BoxDownMats[i]<5)&(BoxDownMats[i]-inputMats[i]<1);
             HitMask=(inputMats[i]<BoxDownMats[i]+5)&(BoxDownMats[i]<inputMats[i])&(m_oLastFGMask_dilated<1);
             add(hitCountDownMats[i],1,hitCountDownMats[i],HitMask);
         }
 
 
-//        RNG rgb;// rng.fill 产生的矩阵一样。
+        //        RNG rgb;// rng.fill 产生的矩阵一样。
         Mat randMat=mask.clone();
 
         //smooth decrease hitCount by 10%
         for(int i=0;i<3;i++){
-//            rgb.fill(randMat,RNG::UNIFORM,0,50,false);
+            //            rgb.fill(randMat,RNG::UNIFORM,0,50,false);
             randu(randMat,0,20);
             subtract(hitCountUpMats[i],1,hitCountUpMats[i],randMat<1&(m_oLastFGMask_dilated<1));
-//             rgb.fill(randMat,RNG::UNIFORM,0,50,false);
+            //             rgb.fill(randMat,RNG::UNIFORM,0,50,false);
             randu(randMat,0,20);
             subtract(hitCountDownMats[i],1,hitCountDownMats[i],randMat<1&(m_oLastFGMask_dilated<1));
         }
@@ -865,49 +878,57 @@ Mat Yzbx::getSingleShrinkFGMask(Mat input,Mat m_oLastFGMask){
             randK=yzbxNoiseRate*50;
         }
 
-//        cout<<"smooth shrink BoxUp and BoxDown"<<endl;
+        //        cout<<"smooth shrink BoxUp and BoxDown"<<endl;
         for(int i=0;i<3;i++){
-//            rgb.fill(randMat,RNG::UNIFORM,0,50,false);
+            //            rgb.fill(randMat,RNG::UNIFORM,0,50,false);
             randu(randMat,0,randK);
             subtract(BoxUpMats[i],1,BoxUpMats[i],randMat<1&(hitCountUpMats[i]<1)&(m_oLastFGMask_dilated<1));
-//            rgb.fill(randMat,RNG::UNIFORM,0,50,false);
+            //            rgb.fill(randMat,RNG::UNIFORM,0,50,false);
             randu(randMat,0,randK);
             add(BoxDownMats[i],1,BoxDownMats[i],randMat<1&(hitCountDownMats[i]<1)&(m_oLastFGMask_dilated<1));
 
             //no too much improve!
-//            rgb.fill(randMat,RNG::UNIFORM,0,50,false);
-//            add(BoxUpMats[i],1,BoxUpMats[i],randMat<1&(hitCountUpMats[i]>1));
-//            rgb.fill(randMat,RNG::UNIFORM,0,50,false);
-//            subtract(BoxDownMats[i],1,BoxDownMats[i],randMat<1&(hitCountDownMats[i]>1));
+            //            rgb.fill(randMat,RNG::UNIFORM,0,50,false);
+            //            add(BoxUpMats[i],1,BoxUpMats[i],randMat<1&(hitCountUpMats[i]>1));
+            //            rgb.fill(randMat,RNG::UNIFORM,0,50,false);
+            //            subtract(BoxDownMats[i],1,BoxDownMats[i],randMat<1&(hitCountDownMats[i]>1));
         }
 
+        Mat unStable=mask.clone();
+        unStable.setTo(0);
         if(yzbxNoiseRate<0.2){
             for(int i=0;i<3;i++){
                 randu(randMat,0,20);
-                subtract(BoxUpMats[i],1,BoxUpMats[i],randMat<5&(hitCountUpMats[i]>2)&(BoxGapMats[i]>10));
-                add(BoxDownMats[i],1,BoxDownMats[i],randMat<5&(hitCountDownMats[i]>2)&(BoxGapMats[i]>10));
+                //                subtract(BoxUpMats[i],1,BoxUpMats[i],randMat<5&(hitCountUpMats[i]>2)&(BoxGapMats[i]>minUnstableGap));
+                //                add(BoxDownMats[i],1,BoxDownMats[i],randMat<5&(hitCountDownMats[i]>2)&(BoxGapMats[i]>minUnstableGap));
+                subtract(BoxUpMats[i],1,BoxUpMats[i],randMat<5&(unStableArea)&(BoxGapMats[i]>minUnstableGap));
+                add(BoxDownMats[i],1,BoxDownMats[i],randMat<5&(unStableArea)&(BoxGapMats[i]>minUnstableGap));
             }
 
         }
-        imshow("addtion",hitCountUp);
-        imshow("boxGap",BoxGap);
+
+        for(int i=0;i<3;i++){
+            unStable=unStable|(BoxGapMats[i]>(minUnstableGap+20));
+        }
+        //        imshow("addtion",hitCountUp);
+        imshow("unStable",unStable);
         imshow("rawFG",rawFG);
         imshow("FG",FG);
         //set BoxUp and BoxDown by input and FGMask!!!
         //容易出现历史累积错误，最终输出全前景。。。因此随机赋一定新值
-//        cout<<"set BoxUp and BoxDown by input and FGMask"<<endl;
+        //        cout<<"set BoxUp and BoxDown by input and FGMask"<<endl;
 
 
         for(int i=0;i<3;i++){
-//            rgb.fill(randMat,RNG::UNIFORM,0,20,false);
+            //            rgb.fill(randMat,RNG::UNIFORM,0,20,false);
             randu(randMat,0,20);
             HitMask=(BoxUpMats[i]-inputMats[i]<1)&(inputMats[i]-BoxUpMats[i]<learnStep);
             cv::max(BoxUpMats[i],inputMats[i],tmp);
             add(tmp,0,BoxUpMats[i],(m_oLastFGMask_dilated<1)&HitMask);
 
-//             rgb.fill(randMat,RNG::UNIFORM,0,20,false);
+            //             rgb.fill(randMat,RNG::UNIFORM,0,20,false);
             randu(randMat,0,20);
-             HitMask=(BoxDownMats[i]-inputMats[i]<learnStep)&(inputMats[i]-BoxDownMats[i]<1);
+            HitMask=(BoxDownMats[i]-inputMats[i]<learnStep)&(inputMats[i]-BoxDownMats[i]<1);
             cv::min(BoxDownMats[i],inputMats[i],tmp);
             add(tmp,0,BoxDownMats[i],(m_oLastFGMask_dilated<1)&HitMask);
         }
@@ -934,19 +955,30 @@ Mat Yzbx::getSingleShrinkFGMask(Mat input,Mat m_oLastFGMask){
             f=inputMats[idx].at<uchar>(150,150);
         }
 
-        Scalar raw=sum(rawFG);
-        Scalar pure=sum(FG);
-        int rows=FG.rows;
-        int cols=FG.cols;
-        yzbxNoiseRate=(raw[0]-pure[0])/(rows*cols*256-pure[0]);
 
-//        cout<<"yzbxNoiseRate="<<yzbxNoiseRate<<endl;
+        subsense_R.convertTo(unStableArea,CV_8U,255);
+        medianBlur(unStableArea,unStableArea,5);
+        unStableArea=unStableArea>5;
+        imshow("unStableArea",unStableArea);
+
+        //        rawFG=rawFG&unStableArea;
+        //        FG=FG&unStableArea;
+        Scalar raw=sum(rawFG&unStableArea);
+        Scalar pure=sum(FG&unStableArea);
+        Scalar area=sum(unStableArea);
+        //        int rows=FG.rows;
+        //        int cols=FG.cols;
+        yzbxNoiseRate=(raw[0]-pure[0])/(area[0]-pure[0]);
+
+        //        cout<<"yzbxNoiseRate="<<yzbxNoiseRate<<endl;
         return oCurrFGMask;
     }
 
 }
 
-Mat subsenseShrink::getRandShrinkFGMask(Mat input){
+Mat subsenseShrink::getRandShrinkFGMask(Mat _input){
+    Mat input=_input.clone();
+    cvtColor(input,input,CV_RGB2HLS_FULL);
     if(yzbxs.empty()){
         for(int i=0;i<randMaskNum;i++){
             Yzbx yzbx;
@@ -955,13 +987,65 @@ Mat subsenseShrink::getRandShrinkFGMask(Mat input){
     }
     Mat mask=Mat::zeros(input.rows,input.cols,CV_8U);
 
-//    int divFactor=256/randMaskNum;
+    //    int divFactor=256/randMaskNum;
+    cv::Mat oDistThresholdFrameNormalized; m_oDistThresholdFrame.convertTo(oDistThresholdFrameNormalized,CV_32FC1,0.25f,-0.25f);
+    //    cv::circle(oDistThresholdFrameNormalized,dbgpt,5,cv::Scalar(1.0f));
+    //    cv::resize(oDistThresholdFrameNormalized,oDistThresholdFrameNormalized,DEFAULT_FRAME_SIZE);
     for(int i=0;i<randMaskNum;i++){
-//        Mat ret=yzbxs[i].getSingleShrinkFGMask(input,m_oLastFGMask);
-        Mat ret=yzbxs[i].getSingleShrinkFGMask(input,m_oLastFGMask);
+        //        Mat ret=yzbxs[i].getSingleShrinkFGMask(input,m_oLastFGMask);
+        Mat ret=yzbxs[i].getSingleShrinkFGMask(input,m_oLastFGMask,oDistThresholdFrameNormalized);
         mask=mask+ret/randMaskNum;
     }
 
+    Mat test=mask.clone();
+    test.setTo(0);
+    int rows=mask.rows,cols=mask.cols;
+    vector<Mat> imgs;
+    split(yzbxInput,imgs);
+    if(!fglist.empty()){
+        for(int i=0;i<rows;i++){
+            for(int j=0;j<cols;j++){
+                for(int k=0;k<5;k++){
+                    if(fglist[k].matchCount>5*5){
+                        Vec3f s=fglist[k].pixel;
+//                        Vec3f a=yzbxInput.at<uchar>(i,j);
+                        Vec3f a;
+                        for(int l=0;l<3;l++){
+                            a[l]=imgs[l].at<uchar>(i,j);
+                        }
+                        int distance=0;
+                        for(int l=0;l<3;l++){
+//                            cout<<"s[l]="<<s[l];
+//                            cout<<" a[l]="<<a[l];
+                            a[l]=s[l]-a[l];
+                        }
+//                        cout<<endl;
+//                        s=(s-a)+(a-s);
+//                        for(int l=0;l<3;l++){
+//                            cout<<"s[l]="<<a[l];
+//                        }
+//                        cout<<endl;
+                        distance=a[0]*a[0]+a[1]*a[1]+a[2]*a[2];
+                        if(distance<15*15*3){
+                            test.at<uchar>(i,j)=255;
+                            break;
+                        }
+                    }
+                    else{
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    for(int i=0;i<10&&i<fglist.size();i++){
+        cout<<fglist[i].matchCount<<" "<<fglist[i].pixel[0]<<" "<<fglist[i].pixel[1]<<" "<<fglist[i].pixel[2]<<endl;
+    }
+
+    Mat kernel=cv::getStructuringElement(cv::MORPH_ELLIPSE,cv::Size(3,3));
+    morphologyEx(test,test,MORPH_DILATE,kernel);
+    imshow("fglist test",test);
     return mask;
 }
 
@@ -969,20 +1053,20 @@ Mat Yzbx::getSingleShrinkFGMask2(Mat input, Mat m_oLastFGMask)
 {
     if(mean.empty()){
         cout<<"start init yzbx"<<endl;
-       mean=input.clone();
+        mean=input.clone();
 
 
-       //work well for 3-channels mat
-       difmax=input.clone();
-       difmax.setTo(5);
+        //work well for 3-channels mat
+        difmax=input.clone();
+        difmax.setTo(5);
 
-       difmaxCount=input.clone();
-       difmaxCount.setTo(1);
+        difmaxCount=input.clone();
+        difmaxCount.setTo(1);
 
-       rawFG=Mat::zeros(input.rows,input.cols,CV_8U);
-       FG=Mat::zeros(input.rows,input.cols,CV_8U);
-       cout<<"init yzbx end"<<endl;
-       return rawFG;
+        rawFG=Mat::zeros(input.rows,input.cols,CV_8U);
+        FG=Mat::zeros(input.rows,input.cols,CV_8U);
+        cout<<"init yzbx end"<<endl;
+        return rawFG;
     }
     else{
         uchar a,b,c,d,e,f;
@@ -1013,7 +1097,7 @@ Mat Yzbx::getSingleShrinkFGMask2(Mat input, Mat m_oLastFGMask)
         }
         cv::merge(mats,outBgMask3);
 
-//        add(difmaxCount,1,difmaxCount,hitMask3&outBgMask3);
+        //        add(difmaxCount,1,difmaxCount,hitMask3&outBgMask3);
 
         Mat mat=hitMask3&outBgMask3;
         split(mat,mats);
@@ -1029,7 +1113,7 @@ Mat Yzbx::getSingleShrinkFGMask2(Mat input, Mat m_oLastFGMask)
         randu(randMat3,0,learnRate);
         mat=randMat3<1&outBgMask3;
         split(mat,mats);
-//        subtract(difmaxCount,1,difmaxCount,randMat3<1&outBgMask3);
+        //        subtract(difmaxCount,1,difmaxCount,randMat3<1&outBgMask3);
 
         for(int i=0;i<3;i++){
             subtract(difmaxCountMats[i],1,difmaxCountMats[i],mats[i]);
@@ -1046,7 +1130,7 @@ Mat Yzbx::getSingleShrinkFGMask2(Mat input, Mat m_oLastFGMask)
         for(int i=0;i<3;i++){
             subtract(difmaxMats[i],1,difmaxMats[i],mats[i]);
         }
-//        cv::merge(difmaxMats,difmax);
+        //        cv::merge(difmaxMats,difmax);
 
 
         //rand set difmax through outBgMask by 20%
@@ -1104,7 +1188,7 @@ Mat subsenseShrink::getRandShrinkFGMask2(Mat input){
     //    Mat mask=Mat::zeros(input.rows,input.cols,CV_8U);
     Mat mask3=Mat::zeros(input.rows,input.cols,CV_8UC3);
 
-//    int divFactor=256/randMaskNum;
+    //    int divFactor=256/randMaskNum;
     for(int i=0;i<randMaskNum;i++){
         Mat ret=yzbxs[i].getSingleShrinkFGMask2(input,m_oLastFGMask);
         if(ret.channels()==1){
@@ -1169,12 +1253,12 @@ Mat subsenseShrink::getRandShrinkFGMask3(Mat input){
     }
 
 
-//    Mat mask=Mat::zeros(input.rows,input.cols,CV_8U);
+    //    Mat mask=Mat::zeros(input.rows,input.cols,CV_8U);
     Mat mask3=Mat::zeros(input.rows,input.cols,CV_8UC3);
-
-//    int divFactor=256/randMaskNum;
+    cv::Mat oDistThresholdFrameNormalized; m_oDistThresholdFrame.convertTo(oDistThresholdFrameNormalized,CV_32FC1,0.25f,-0.25f);
+    //    int divFactor=256/randMaskNum;
     for(int i=0;i<randMaskNum;i++){
-        Mat ret=yzbxs[i].getSingleShrinkFGMask(dif,m_oLastFGMask);
+        Mat ret=yzbxs[i].getSingleShrinkFGMask(dif,m_oLastFGMask,oDistThresholdFrameNormalized);
         if(ret.channels()==1){
             cout<<"ret's channels is 1"<<endl;
             break;
@@ -1186,4 +1270,98 @@ Mat subsenseShrink::getRandShrinkFGMask3(Mat input){
     }
 
     return mask3;
+}
+
+void subsenseShrink::sortFGList(){
+    //    fglist.swap(); 并不是交互...
+    //input yzbxInput, mask m_oLastFGMask
+    int rows=yzbxInput.rows;
+    int cols=yzbxInput.cols;
+    fglist.clear();
+//    int siz=fglist.size();
+    vector<Mat>imgs;
+    split(yzbxInput,imgs);
+    for(int i=0;i<rows;i++){
+        for(int j=0;j<cols;j++){
+            uchar flag=m_oLastFGMask.at<uchar>(i,j);
+            if(flag==255){
+//                Vec3f p=yzbxInput.at<uchar>(i,j);
+                Vec3f p;
+                for(int k=0;k<3;k++){
+                    p[k]=imgs[k].at<uchar>(i,j);
+                }
+
+                if(fglist.empty()){
+                    FGSample s;
+                    s.matchCount=1;
+                    s.pixel=p;
+
+                    fglist.push_back(s);
+                    continue;
+                }
+
+                for(int k=0;k<fglist.size();k++){
+                    FGSample s=fglist.at(k);
+                    int dist=0;
+                    for(int l=0;l<3;l++){
+                        dist=dist+(p[l]-s.pixel[l])*(p[l]-s.pixel[l]);
+                    }
+                    //                            dist=sqrt(dist)<5;
+
+                    if(dist<15*15*3){
+                        s.matchCount=s.matchCount+1;
+                        fglist.at(k)=s;
+                        break;
+                    }
+                    else{
+                        if(k==fglist.size()){
+                            FGSample s;
+                            s.matchCount=1;
+                            s.pixel=p;
+
+                            fglist.push_back(s);
+                        }
+                    }
+                }
+
+
+            }
+
+        }
+    }
+
+    sort(fglist.begin(),fglist.end());
+
+    //    imshow("subsenseFG",m_oLastFGMask);
+}
+
+double subsenseShrink::colorDistance(Vec3b a,Vec3b b){
+    int na=0,nb=0,cos=0;
+    for(int i=0;i<3;i++){
+        na=na+a[i]*a[i];
+        nb=nb+b[i]*b[i];
+        cos=cos+a[i]*b[i];
+    }
+
+    double lambda=cos/(sqrt(na*nb+1));
+    Vec3d L,d;
+    double nl=0,nd=0;
+    for(int i=0;i<3;i++){
+        L[i]=lambda*b[i];
+        d[i]=a[i]-L[i];
+        nl=nl+L[i];
+        nd=d[i]+nd;
+    }
+
+    double dist=0;
+    if(nb>nl){
+//        dist=sqrt(nd)+sqrt(nl/(bl+1));
+        dist=cos+sqrt(nl/(nb+1));
+    }
+    else{
+//        dist=sqrt(nd)+sqrt(bl/(nl+1));
+        dist=cos+sqrt(nb/(nl+1));
+    }
+
+    return dist;
 }

@@ -1,6 +1,7 @@
 #ifndef SUBSENSESHRINK_H
 #define SUBSENSESHRINK_H
 #include "../../pl/BackgroundSubtractorSuBSENSE.h"
+#include <algorithm>
 
 using namespace std;
 using namespace cv;
@@ -14,13 +15,30 @@ public:
     Mat rawFG,FG;
     Mat difImage,BoxGap;
     int learnStep=3;
+    Mat unStableArea;
 
     //boxup and boxdown
-    Mat getSingleShrinkFGMask(Mat input, Mat m_oLastFGMask);
+    Mat getSingleShrinkFGMask(Mat input, Mat m_oLastFGMask, Mat subsense_R);
 
     Mat mean,difmax,difmaxCount;
     //mean,difmax
     Mat getSingleShrinkFGMask2(Mat input, Mat m_oLastFGMask);
+};
+
+class FGSample{
+public:
+    int matchCount=0;
+    Vec3f pixel;
+
+    bool operator< (const FGSample &a)  const
+    {
+        if(matchCount!=a.matchCount)
+            return matchCount>a.matchCount;
+        else
+        {
+            return 0;
+        }
+    }
 };
 
 class subsenseShrink: public BackgroundSubtractorSuBSENSE
@@ -41,8 +59,13 @@ public:
     Mat getRandShrinkFGMask(Mat  input);
     Mat getRandShrinkFGMask2(Mat input);
     Mat getRandShrinkFGMask3(Mat input);
+
+    void sortFGList();
+    double colorDistance(Vec3b a,Vec3b b);
 public:
     Mat yzbxRawFGMask;
+    Mat yzbxInput;
+    Mat yzbxFGMask;
     Mat yzbxNoiseOffset;
     Mat yzbxNoiseCount;
     double yzbxNoiseRate;
@@ -57,6 +80,9 @@ public:
     int randMaskNum=1;
     Mat mean;
     vector<Yzbx> yzbxs;
+
+    //the fg pixel list, sort by FGList.count.
+    vector<FGSample> fglist;
 };
 
 #endif // SUBSENSESHRINK_H
