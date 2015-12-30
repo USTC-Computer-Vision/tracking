@@ -12,17 +12,27 @@
 
 using namespace std;
 using namespace cv;
-int main()
+int main(int argc,char *argv[])
 {
     cout << "Hello World!" << endl;
+
     cv::Mat oCurrInputFrame, oCurrSegmMask, oCurrReconstrBGImg;
 //    string fileDir="D:\\firefoxDownload\\matlab\\dataset2012\\dataset\\dynamicBackground\\boats\\input";
 //    string fileDir="/media/yzbx/D/firefoxDownload/matlab/dataset2012/dataset/dynamicBackground/boats/input";
-    string fileDir="/media/yzbx/D/firefoxDownload/matlab/dataset2012/dataset/baseline/office/input";
 
-    int roi[]={7000,7100};
-    std::cout<<"fileDir is "<<fileDir<<std::endl;
+    int roi[]={0,0};
     stringstream ss;
+
+    int a;
+    string fileDir,rootPath;
+//    string rootPath="/media/yzbx/E/matlab/subsense/yzbx/fall";
+    ss<<argv[1];ss>>fileDir;fileDir=fileDir+"/input";ss.clear();
+    ss<<argv[2];ss>>rootPath;ss.clear();
+    ss<<argv[3];ss>>a;roi[0]=a;ss.clear();
+    ss<<argv[4];ss>>a;roi[1]=a;ss.clear();
+
+    cout<<fileDir<<" "<<rootPath<<" "<<roi[0]<<" "<<roi[1]<<endl;
+
     int frameNum=roi[0]-100;
     char strnum[10];
     sprintf(strnum,"%06d",frameNum);
@@ -52,7 +62,7 @@ int main()
     cv::namedWindow("mask",cv::WINDOW_NORMAL);
     cv::namedWindow("rawFG",cv::WINDOW_AUTOSIZE);
     cv::namedWindow("FG",cv::WINDOW_AUTOSIZE);
-    cv::namedWindow("randm",cv::WINDOW_AUTOSIZE);
+//    cv::namedWindow("randm",cv::WINDOW_AUTOSIZE);
     cv::namedWindow("boxGap",cv::WINDOW_AUTOSIZE);
     cv::namedWindow("addtion",cv::WINDOW_AUTOSIZE);
     subsenseShrink oBGSAlg;
@@ -102,21 +112,20 @@ int main()
 //            imshow("boxGap",oBGSAlg.BoxGap>10);
         }
 
-//        if(frameNum>=roi[0]){
-//            ss.clear();
-//            string rootPath="/media/yzbx/E/matlab/subsense/yzbx/fall";
-//            ss<<rootPath<<"/bin"<<strnum<<".png";
-//            string outPath;
-////            ss>>fileName;
-//            ss>>outPath;
-//           bool flag=imwrite(outPath,oCurrSegmMask);
-//           if(!flag){
-//               cout<<"write file failed!!!"<<endl;
-//           }
-//           else{
-//               cout<<"write file "+outPath+" okay!!!"<<endl;
-//           }
-//        }
+        if(frameNum>=roi[0]){
+            ss.clear();
+            ss<<rootPath<<"/bin"<<strnum<<".png";
+            string outPath;
+//            ss>>fileName;
+            ss>>outPath;
+           bool flag=imwrite(outPath,oCurrSegmMask);
+           if(!flag){
+               cout<<"write file failed!!!"<<endl;
+           }
+           else{
+               cout<<"write file "+outPath+" okay!!!"<<endl;
+           }
+        }
         if(cv::waitKey(1)==27)
             break;
     }

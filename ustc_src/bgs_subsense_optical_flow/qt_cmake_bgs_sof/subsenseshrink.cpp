@@ -783,6 +783,7 @@ Mat Yzbx::getSingleShrinkFGMask(Mat input,Mat m_oLastFGMask){
         split(BoxUp,BoxUpMats);
         split(BoxDown,BoxDownMats);
 
+        //only use boxmax, not to use boxmin to resist shadow and light change!
         BoxGap=(BoxUp-BoxDown)/2;
         vector<Mat> BoxGapMats;
         split(BoxGap,BoxGapMats);
@@ -807,6 +808,7 @@ Mat Yzbx::getSingleShrinkFGMask(Mat input,Mat m_oLastFGMask){
         cv::medianBlur(FG,FG,m_nMedianBlurKernelSize);
         cv::dilate(FG,FG,kernel);
         cv::morphologyEx(FG,FG,MORPH_CLOSE,kernel);
+
 
 
         Mat m_oLastFGMask_dilated=mask.clone();
@@ -889,8 +891,8 @@ Mat Yzbx::getSingleShrinkFGMask(Mat input,Mat m_oLastFGMask){
         }
         imshow("addtion",hitCountUp);
         imshow("boxGap",BoxGap);
+        imshow("rawFG",rawFG);
         imshow("FG",FG);
-
         //set BoxUp and BoxDown by input and FGMask!!!
         //容易出现历史累积错误，最终输出全前景。。。因此随机赋一定新值
 //        cout<<"set BoxUp and BoxDown by input and FGMask"<<endl;
@@ -937,8 +939,6 @@ Mat Yzbx::getSingleShrinkFGMask(Mat input,Mat m_oLastFGMask){
         int rows=FG.rows;
         int cols=FG.cols;
         yzbxNoiseRate=(raw[0]-pure[0])/(rows*cols*256-pure[0]);
-        imshow("rawFG",rawFG);
-        imshow("FG",FG);
 
 //        cout<<"yzbxNoiseRate="<<yzbxNoiseRate<<endl;
         return oCurrFGMask;
