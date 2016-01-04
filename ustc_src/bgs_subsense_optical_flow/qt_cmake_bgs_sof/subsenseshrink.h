@@ -22,23 +22,7 @@ public:
 
     Mat mean,difmax,difmaxCount;
     //mean,difmax
-    Mat getSingleShrinkFGMask2(Mat input, Mat m_oLastFGMask);
-};
-
-class FGSample{
-public:
-    int matchCount=0;
-    Vec3f pixel;
-
-    bool operator< (const FGSample &a)  const
-    {
-        if(matchCount!=a.matchCount)
-            return matchCount>a.matchCount;
-        else
-        {
-            return 0;
-        }
-    }
+//    Mat getSingleShrinkFGMask2(Mat input, Mat m_oLastFGMask);
 };
 
 class subsenseShrink: public BackgroundSubtractorSuBSENSE
@@ -55,12 +39,7 @@ public:
 
     void operator()(cv::InputArray image, cv::OutputArray fgmask, double learningRateOverride=0);
     Mat getNoiseImg();
-    Mat getShrinkFGMask(Mat input);
     Mat getRandShrinkFGMask(Mat  input);
-    Mat getRandShrinkFGMask2(Mat input);
-    Mat getRandShrinkFGMask3(Mat input);
-
-    void sortFGList();
     double colorDistance(Vec3b a,Vec3b b);
 public:
     Mat yzbxRawFGMask;
@@ -72,7 +51,7 @@ public:
     int yzbxFrameNum=1;
 
     Mat BoxUp,BoxDown;
-    Mat hitCountUp,hitCountDown;
+//    Mat hitCountUp,hitCountDown;
     Mat rawFG,FG;
     Mat difImage,BoxGap;
     int learnStep=3;
@@ -82,7 +61,7 @@ public:
     vector<Yzbx> yzbxs;
 
     //the fg pixel list, sort by FGList.count.
-    vector<FGSample> fglist;
+//    vector<FGSample> fglist;
 };
 
 #endif // SUBSENSESHRINK_H

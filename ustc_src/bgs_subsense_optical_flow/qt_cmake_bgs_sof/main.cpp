@@ -17,10 +17,10 @@ int main()
     cout << "Hello World!" << endl;
     cv::Mat oCurrInputFrame, oCurrSegmMask, oCurrReconstrBGImg;
 //    string fileDir="D:\\firefoxDownload\\matlab\\dataset2012\\dataset\\dynamicBackground\\boats\\input";
-//    string fileDir="/media/yzbx/D/firefoxDownload/matlab/dataset2012/dataset/dynamicBackground/boats/input";
-    string fileDir="/media/yzbx/D/firefoxDownload/matlab/dataset2012/dataset/baseline/office/input";
+    string fileDir="/media/yzbx/D/firefoxDownload/matlab/dataset2012/dataset/dynamicBackground/boats/input";
+//    string fileDir="/media/yzbx/D/firefoxDownload/matlab/dataset2012/dataset/baseline/office/input";
 
-    int roi[]={700,1000};
+    int roi[]={6900,7500};
     std::cout<<"fileDir is "<<fileDir<<std::endl;
     stringstream ss;
     int frameNum=roi[0]-100;
@@ -45,6 +45,7 @@ int main()
         return -1;
     }
 
+//    cvtColor(oCurrInputFrame,oCurrInputFrame,CV_RGB2HLS_FULL);
     oCurrSegmMask.create(oCurrInputFrame.size(),CV_8UC1);
     oCurrReconstrBGImg.create(oCurrInputFrame.size(),oCurrInputFrame.type());
     cv::Mat oSequenceROI(oCurrInputFrame.size(),CV_8UC1,cv::Scalar_<uchar>(255)); // for optimal results, pass a constrained ROI to the algorithm (ex: for CDnet, use ROI.bmp)
