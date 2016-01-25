@@ -41,44 +41,44 @@ void shrinkBGS::process(const cv::Mat &img_input, cv::Mat &img_output, cv::Mat &
         double t = (double)getTickCount();
         getRawForegroundMask();
         t = ((double)getTickCount() - t)/getTickFrequency();
-        LOG_MESSAGE(t);
+//        LOG_MESSAGE(t);
 
         getPureForegroundMask();
 
         t = (double)getTickCount();
         updateBackground();
         t = ((double)getTickCount() - t)/getTickFrequency();
-        LOG_MESSAGE(t);
+//        LOG_MESSAGE(t);
 
          t = (double)getTickCount();
         updateForegroundAsBackground();
         t = ((double)getTickCount() - t)/getTickFrequency();
-        LOG_MESSAGE(t);
+//        LOG_MESSAGE(t);
 
          t = (double)getTickCount();
         updateDistanceThreshold();
         t = ((double)getTickCount() - t)/getTickFrequency();
-        LOG_MESSAGE(t);
+//        LOG_MESSAGE(t);
 
 
         if((frameNum%SampleNum)==(SampleNum-1)){
              t = (double)getTickCount();
             updateBound();
             t = ((double)getTickCount() - t)/getTickFrequency();
-            LOG_MESSAGE(t);
+//            LOG_MESSAGE(t);
         }
 
         if(frameNum>SampleNum){
             t = (double)getTickCount();
             getWeightedForegroundMask();
             t = ((double)getTickCount() - t)/getTickFrequency();
-            LOG_MESSAGE(t);
+//            LOG_MESSAGE(t);
 
             medianBlur(img_weightedRawForegroundMask,img_weightedPureForegroundMask,5);
             t = (double)getTickCount();
             updateWeightedDistanceThreshold();
             t = ((double)getTickCount() - t)/getTickFrequency();
-            LOG_MESSAGE(t);
+//            LOG_MESSAGE(t);
 
             imshow("weighted raw foreground",img_weightedRawForegroundMask);
             img_show("weighted Dmin",img_weightedDmin32F);
@@ -90,7 +90,7 @@ void shrinkBGS::process(const cv::Mat &img_input, cv::Mat &img_output, cv::Mat &
         debug();
     }
 
-    LOG_MESSAGE("addtion work");
+//    LOG_MESSAGE("addtion work");
 
     img_output=img_rawForegroundMask;
     frameNum=frameNum+1;
@@ -99,7 +99,7 @@ void shrinkBGS::process(const cv::Mat &img_input, cv::Mat &img_output, cv::Mat &
 void shrinkBGS::getRawForegroundMask(){
     for(int i=0;i<img_rows;i++){
         for(int j=0;j<img_cols;j++){
-            LOG_MESSAGE_POINT("empty img_roi");
+//            LOG_MESSAGE_POINT("empty img_roi");
             if(!img_roi.empty()){
                 if(img_roi.at<uchar>(i,j)==0){
                     continue;
@@ -111,7 +111,7 @@ void shrinkBGS::getRawForegroundMask(){
             size_t nCurrTotColorDistThreshold=(size_t)img_distanceThreshold32F.at<float>(i,j);
             float DThreshold=img_distanceThreshold32F.at<float>(i,j);
             float Dmin=DThreshold;
-            LOG_MESSAGE_POINT("start model loop");
+//            LOG_MESSAGE_POINT("start model loop");
 
             while(nGoodSamplesCount<m_nRequiredBGSamples && nSampleIdx<SampleNum) {
                 Vec3b anBGColor=vec_BGColorSample[nSampleIdx].at<Vec3b>(i,j);
@@ -141,7 +141,7 @@ void shrinkBGS::getRawForegroundMask(){
                 //                failedcheck3ch:
                 nSampleIdx++;
             }
-            LOG_MESSAGE_POINT("end model loop");
+//            LOG_MESSAGE_POINT("end model loop");
 
             img_Dmin32F.at<float>(i,j)=Dmin;
             LOG_MESSAGE_POINT(Dmin);
@@ -251,7 +251,7 @@ void shrinkBGS::init(){
     img_weightedDmin32F.create(img_size,CV_32F);
     img_weightedDmin32F=20.0;
     img_weightedDistanceThreshold32F.create(img_size,CV_32F);
-    img_weightedDistanceThreshold32F=20.0;
+    img_weightedDistanceThreshold32F=0.5;
     img_weightedRawForegroundMask.create(img_size,CV_8U);
 
     //    Vec3b t(30,10,10);
@@ -328,7 +328,8 @@ void shrinkBGS::updateBound(){
     for(int c=0;c<3;c++){
 //        medianBlur(mats1[c],mats1[c],5);
 //        medianBlur(mats2[c],mats2[c],5);
-        mats3[c]=mats1[c]-mats2[c];
+        //(mats2[c]-mats1[c])==0, for mats2[c]<=mats1[c]
+        mats3[c]=(mats1[c]-mats2[c]);
 //        medianBlur(mats3[c],mats3[c],5);
     }
     Mat directorVector;
@@ -339,10 +340,9 @@ void shrinkBGS::updateBound(){
     for(int i=0;i<img_rows;i++){
         for(int j=0;j<img_cols;j++){
             Vec3b v=directorVector.at<Vec3b>(i,j);
-            float norm=sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]+0.1);
-
+//            float norm=sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]+0.1);
             for(int c=0;c<3;c++){
-                normDirectorVector.at<Vec3f>(i,j)[c]=sqrt(3)*v[c]/norm;
+                normDirectorVector.at<Vec3f>(i,j)[c]=sqrt(3)*(float)v[c];
             }
         }
     }
@@ -414,7 +414,7 @@ void shrinkBGS::updateBackground(){
                     }
                 }
 
-                LOG_MESSAGE_POINT("update neighbor");
+//                LOG_MESSAGE_POINT("update neighbor");
                 int y, x;
                 //                getRandNeighborPosition_3x3(x,y,i,j,0,img_size);
                 getRandNeighborPosition_3x3(y,x,j,i,0,img_size);
@@ -601,56 +601,61 @@ void shrinkBGS::getWeightedForegroundMask(){
                 }
             }
             Vec3b uchar_anCurrColor=input.at<Vec3b>(i,j);
-            Vec3f float_anCurrColor;
-            for(int c=0;c<3;c++){
-                float_anCurrColor[c]=(float)uchar_anCurrColor[c];
-            }
             float nCurrTotColorDistThreshold=img_distanceThreshold32F.at<float>(i,j);
             size_t nGoodSamplesCount=0;
 //            size_t
             float DThreshold=img_weightedDistanceThreshold32F.at<float>(i,j);
-            float Dmin=DThreshold;
-            Vec3f anBGColor=img_distanceWeight32FC3.at<float>(i,j);
+            float weightedDmin=DThreshold;
+            Vec3f weight=img_distanceWeight32FC3.at<float>(i,j);
             for(int k=0;k<SampleNum;k++){
                 Vec3b uchar_anBGColor=vec_BGColorSample[k].at<Vec3b>(i,j);
+//               dif=input-vec_BGColorSample[k]
                 Vec3f dif;
-
-
                 for(int c=0;c<3;c++){
-                    dif[c]=abs(float_anCurrColor[c]-(float)uchar_anBGColor[c]);
+                    dif[c]=(float)uchar_anCurrColor[c]-(float)uchar_anBGColor[c];
                 }
 
-                if(k==0){
-                    LOG_MESSAGE_POINT(dif);
-                    LOG_MESSAGE_POINT(anBGColor);
+//                weight=max(vec_BGColorSample[k])-min(vec_BGColorSample[k])
+                float a=0.0;
+                for(int c=0;c<3;c++){
+                    a=a+dif[c]*weight[c];
                 }
+                float norm_dif=0.1,norm_weight=0.1;
+                for(int c=0;c<3;c++){
+                    norm_dif=norm_dif+dif[c]*dif[c];
+                    norm_weight=norm_weight+weight[c]*weight[c];
+                }
+                norm_weight=norm_weight/2;
 
-                float a=0+dif[1]*anBGColor[2]-dif[2]*anBGColor[1];
-                a=abs(a)+abs(dif[0]*anBGColor[2]-dif[2]*anBGColor[0]);
-                a=a+abs(dif[0]*anBGColor[1]-dif[1]*anBGColor[0]);
+                float color_change=1-abs(a)/(norm_dif*norm_weight);
+                float light_change=norm_dif/norm_weight;
+
+                //remove shadows
+                a=color_weight*color_change+(1-color_weight)*(light_change-1);
+//                a=color_change;
 
                 if(k==0)
                     LOG_MESSAGE_POINT(a);
 
                 if(a<nCurrTotColorDistThreshold){
                     nGoodSamplesCount++;
-                    if(Dmin>a){
-                        Dmin=a;
+                    if(weightedDmin>a&&light_change>1){
+                        weightedDmin=a;
                     }
                     if(nGoodSamplesCount>=m_nRequiredBGSamples){
                         break;
                     }
                 }
             }
-            img_weightedDmin32F.at<float>(i,j)=Dmin;
-            LOG_MESSAGE_POINT(Dmin);
+            img_weightedDmin32F.at<float>(i,j)=weightedDmin;
+            LOG_MESSAGE_POINT(weightedDmin);
             if(nGoodSamplesCount<m_nRequiredBGSamples){
                 img_weightedRawForegroundMask.at<uchar>(i,j)=255;
             }
             else{
                 img_weightedRawForegroundMask.at<uchar>(i,j)=0;
                 img_weightedDistanceThreshold32F.at<float>(i,j)=\
-                        DThreshold*(1-weightedDistance_learningRate)+weightedDistance_learningRate*Dmin;
+                        DThreshold*(1-weightedDistance_learningRate)+weightedDistance_learningRate*weightedDmin;
             }
         }
     }

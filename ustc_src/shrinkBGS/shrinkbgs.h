@@ -82,6 +82,7 @@ public:
     const int m_nRequiredBGSamples=2;
     //foregroundAcceptRate=1/foregroundAcceptNum;
     const int foregroundAcceptNum=2;
+    const float color_weight=0.7;
     Vec3b L1Threshold;
 
     //debug
