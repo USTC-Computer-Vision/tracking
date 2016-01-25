@@ -9,9 +9,11 @@
 //#include "bgs_shrink.h"
 #include "subsenseshrink.h"
 #include "../../pl/BackgroundSubtractorSuBSENSE.h"
+#include <fstream>
 
 using namespace std;
 using namespace cv;
+
 int main()
 {
     cout << "Hello World!" << endl;
@@ -56,6 +58,10 @@ int main()
     subsenseShrink oBGSAlg;
 //    BackgroundSubtractorSuBSENSE oBGSAlg;
     oBGSAlg.initialize(oCurrInputFrame,oSequenceROI);
+
+    vector<vector<Vec3b>> points;
+    int psize;
+//    vector<Vec3b> labels;
     for(int k=0;; ++k)
     {
         ss.clear();
@@ -98,6 +104,43 @@ int main()
 //            imshow("randm",oBGSAlg.yzbxRawFGMask);
 //            imshow("difImage",gray);
 //            imshow("boxGap",oBGSAlg.BoxGap>10);
+            vector<Vec3b> ps;
+            Vec3b p;
+            vector<Mat>imgs;
+            Mat img=oBGSAlg.yzbxs[0].BoxUp;
+            split(img,imgs);
+            for(int i=0;i<3;i++){
+                p[i]=imgs[i].at<uchar>(147,150);
+            }
+            ps.push_back(p);
+
+            img=oBGSAlg.yzbxs[0].BoxDown;
+            imgs.clear();
+            split(img,imgs);
+            for(int i=0;i<3;i++){
+                p[i]=imgs[i].at<uchar>(147,150);
+            }
+            ps.push_back(p);
+
+            Mat lab;
+            if(ColorSpace==LAB_Color_Space){
+                cvtColor(oCurrInputFrame,lab,CV_RGB2Lab);
+            }
+            else{
+                lab=oCurrInputFrame;
+            }
+
+            img=lab;
+            imgs.clear();
+            split(img,imgs);
+            for(int i=0;i<3;i++){
+                p[i]=imgs[i].at<uchar>(147,150);
+            }
+            ps.push_back(p);
+
+            cout<<"ps.size="<<ps.size()<<endl;
+            points.push_back(ps);
+            psize++;
         }
 
 //        if(frameNum>=roi[0]){
@@ -118,6 +161,26 @@ int main()
         if(cv::waitKey(1)==27)
             break;
     }
+
+    ofstream out("out.txt");
+    cout<<"points.size is "<<points.size()<<endl;
+    cout<<"psize="<<psize<<endl;
+    for(int j=0;j<psize;j++){
+        vector<Vec3b> vs=points[j];
+        int sizevs=vs.size();
+        out<<j;
+        for(int k=0;k<vs.size();k++){
+            Vec3b v=vs.at(k);
+            //num up down lab
+            for(int i=0;i<3;i++){
+                out<<" "<<(int)v[i];
+            }
+        }
+        out<<endl;
+    }
+   out.close();
+
+//    cv::waitKey(0);
     return 0;
 }
 

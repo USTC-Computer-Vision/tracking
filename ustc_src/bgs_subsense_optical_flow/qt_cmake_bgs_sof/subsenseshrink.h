@@ -3,6 +3,11 @@
 #include "../../pl/BackgroundSubtractorSuBSENSE.h"
 #include <algorithm>
 
+#define RGB_Color_Space 0
+#define LAB_Color_Space 1
+
+//int ColorSpace=RGB_Color_Space;
+int ColorSpace=LAB_Color_Space;
 using namespace std;
 using namespace cv;
 class Yzbx{
@@ -10,6 +15,7 @@ public:
     double yzbxNoiseRate;
     int yzbxFrameNum=1;
 
+//    int pos[]={147,150};
     Mat BoxUp,BoxDown;
     Mat hitCountUp,hitCountDown;
     Mat rawFG,FG;
@@ -63,5 +69,15 @@ public:
     //the fg pixel list, sort by FGList.count.
 //    vector<FGSample> fglist;
 };
+
+
+int ReLU_hitCountFeedback(int count){
+    if(count<10){
+        return 0;
+    }
+    else{
+        return (count-10)*(count-10);
+    }
+}
 
 #endif // SUBSENSESHRINK_H

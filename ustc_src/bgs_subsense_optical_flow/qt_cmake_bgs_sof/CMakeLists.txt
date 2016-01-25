@@ -23,7 +23,7 @@ target_link_libraries(yzbx ${OpenCV_LIBS})
 set_property(TARGET yzbx PROPERTY PUBLIC_HEADER ${includes})
 
 add_executable(${PROJECT_NAME} main.cpp)
-target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS} yzbx)
+target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS} yzbx python2.7)
 #target_compile_features(${PROJECT_NAME} PRIVATE cxx_range_for)
 
 #add_executable(shrink shrink.cpp)

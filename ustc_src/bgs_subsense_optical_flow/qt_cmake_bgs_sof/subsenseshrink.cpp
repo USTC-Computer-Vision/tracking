@@ -504,22 +504,45 @@ Mat subsenseShrink::getNoiseImg(){
 
 }
 
-Mat Yzbx::getSingleShrinkFGMask(Mat input,Mat m_oLastFGMask,Mat subsense_R){
+Mat Yzbx::getSingleShrinkFGMask(Mat _input,Mat m_oLastFGMask,Mat subsense_R){
+    Mat input;
+    if(ColorSpace==RGB_Color_Space){
+        input=_input;
+    }
+    else{
+        cvtColor(_input,input,CV_RGB2Lab);
+    }
+
     if(BoxDown.empty()){
         cout<<"BoxDown is empty"<<endl;
         //        BoxDown=input-15;
         //        BoxUp=input+15;
         BoxUp=input.clone();
         BoxDown=input.clone();
+//        LabBoxUp=input.clone();
+//        LabBoxDown=input.clone();
+
         vector<Mat> inputMats,BoxUpMats,BoxDownMats;
         split(input,inputMats);
         split(BoxUp,BoxUpMats);
         split(BoxDown,BoxDownMats);
 
-        for(int i=0;i<3;i++){
+        if(ColorSpace==RGB_Color_Space){
+            for(int i=0;i<3;i++){
+                add(inputMats[i],10,BoxUpMats[i]);
+                subtract(inputMats[i],10,BoxDownMats[i]);
+            }
+        }
+        else if(ColorSpace==LAB_Color_Space){
+            int i=0;
             add(inputMats[i],10,BoxUpMats[i]);
             subtract(inputMats[i],10,BoxDownMats[i]);
+            for(int i=1;i<3;i++){
+                add(inputMats[i],5,BoxUpMats[i]);
+                subtract(inputMats[i],5,BoxDownMats[i]);
+            }
         }
+
         cv::merge(BoxUpMats,BoxUp);
         cv::merge(BoxDownMats,BoxDown);
 
@@ -633,11 +656,11 @@ Mat Yzbx::getSingleShrinkFGMask(Mat input,Mat m_oLastFGMask,Mat subsense_R){
         yzbxNoiseRate=(raw[0]-pure[0])/(area[0]-pure[0]);
 
 
-         cout<<"FG.cols "<<FG.cols<<" type"<<FG.type()<<endl;
+//         cout<<"FG.cols "<<FG.cols<<" type"<<FG.type()<<endl;
         add(gray,0,mask,FG&unStableArea);
-        cout<<"FG.cols "<<mask.cols<<" type"<<mask.type()<<endl;
+//        cout<<"FG.cols "<<mask.cols<<" type"<<mask.type()<<endl;
         FG=mask;
-        cout<<"FG.cols "<<FG.cols<<" type"<<FG.type()<<endl;
+//        cout<<"FG.cols "<<FG.cols<<" type"<<FG.type()<<endl;
         cout<<"yzbxNoiseRate="<<yzbxNoiseRate<<endl;
         return FG;
     }
